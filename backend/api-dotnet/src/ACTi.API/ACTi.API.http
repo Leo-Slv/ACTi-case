@@ -1,0 +1,6 @@
+@ACTi.API_HostAddress = http://localhost:5210
+
+GET {{ACTi.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
