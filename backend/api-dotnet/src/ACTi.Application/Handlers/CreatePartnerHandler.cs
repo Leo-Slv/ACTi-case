@@ -1,20 +1,33 @@
-﻿// ACTi.Application/Handlers/CreatePartnerHandler.cs
+﻿// backend/api-dotnet/src/ACTi.Application/Handlers/CreatePartnerHandler.cs
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using ACTi.Application.Commands;
 using ACTi.Application.DTOs.Responses;
 using ACTi.Domain.Entities;
+using ACTi.Infrastructure.Repositories;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace ACTi.Application.Handlers
 {
     /// <summary>
     /// Handler responsável por processar o comando de criação de parceiro
-    /// Implementa a lógica de negócio e orquestração
+    /// Implementa a lógica de negócio, validações e orquestração
     /// </summary>
     public class CreatePartnerHandler : IRequestHandler<CreatePartnerCommand, PartnerResponse>
     {
+        private readonly IPartnerRepository _partnerRepository;
+        private readonly ILogger<CreatePartnerHandler> _logger;
+
+        public CreatePartnerHandler(
+            IPartnerRepository partnerRepository,
+            ILogger<CreatePartnerHandler> logger)
+        {
+            _partnerRepository = partnerRepository ?? throw new ArgumentNullException(nameof(partnerRepository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
         /// <summary>
         /// Processa o comando de criar parceiro
         /// </summary>
@@ -23,29 +36,54 @@ namespace ACTi.Application.Handlers
         /// <returns>Resposta com dados do parceiro criado</returns>
         public async Task<PartnerResponse> Handle(CreatePartnerCommand request, CancellationToken cancellationToken)
         {
-            // Validar entrada
-            ValidateRequest(request);
+            _logger.LogInformation("Iniciando criação de parceiro: {CompanyName}, Tipo: {PersonalityType}",
+                request.CompanyName, request.PersonalityType);
 
-            // Criar entidade Partner baseada no tipo de personalidade
-            var partner = CreatePartnerEntity(request);
+            try
+            {
+                // 1. Validar entrada
+                await ValidateRequestAsync(request, cancellationToken);
 
-            // TODO: Salvar no banco via Repository (implementaremos na Infrastructure)
-            // await _partnerRepository.AddAsync(partner, cancellationToken);
+                // 2. Criar entidade Partner
+                var partner = CreatePartnerEntity(request);
 
-            // Por enquanto, simular ID (quando implementarmos Repository, vem do banco)
-            var partnerId = GenerateTemporaryId();
+                // 3. Validar duplicidade
+                await ValidateDuplicatesAsync(partner, cancellationToken);
 
-            // Mapear para DTO de resposta
-            var response = MapToResponse(partner, partnerId);
+                // 4. Salvar no banco via Repository
+                var savedPartner = await _partnerRepository.AddAsync(partner, cancellationToken);
 
-            return response;
+                _logger.LogInformation("Parceiro criado com sucesso. ID: {PartnerId}, Nome: {CompanyName}",
+                    savedPartner.Id, savedPartner.CompanyName);
+
+                // 5. Mapear para DTO de resposta
+                var response = MapToResponse(savedPartner);
+
+                return response;
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning("Erro de validação ao criar parceiro: {Error}", ex.Message);
+                throw;
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Erro de regra de negócio ao criar parceiro: {Error}", ex.Message);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro inesperado ao criar parceiro: {CompanyName}", request.CompanyName);
+                throw new InvalidOperationException("Erro interno ao processar criação do parceiro", ex);
+            }
         }
 
         /// <summary>
         /// Valida os dados da requisição
         /// </summary>
-        private static void ValidateRequest(CreatePartnerCommand request)
+        private async Task ValidateRequestAsync(CreatePartnerCommand request, CancellationToken cancellationToken)
         {
+            // Validações básicas de entrada
             if (string.IsNullOrWhiteSpace(request.PersonalityType))
                 throw new ArgumentException("Tipo de personalidade é obrigatório");
 
@@ -60,18 +98,60 @@ namespace ACTi.Application.Handlers
 
             if (string.IsNullOrWhiteSpace(request.Email))
                 throw new ArgumentException("Email é obrigatório");
+
+            // Validações específicas por tipo
+            if (request.PersonalityType == "J")
+            {
+                ValidateLegalPersonData(request);
+            }
+            else
+            {
+                ValidateNaturalPersonData(request);
+            }
+
+            _logger.LogDebug("Validações básicas concluídas para {PersonalityType}", request.PersonalityType);
+        }
+
+        /// <summary>
+        /// Validações específicas para pessoa jurídica
+        /// </summary>
+        private static void ValidateLegalPersonData(CreatePartnerCommand request)
+        {
+            // Validar comprimento do CNPJ (básico, o Value Object fará validação completa)
+            var cleanCnpj = request.Document.Replace(".", "").Replace("/", "").Replace("-", "");
+            if (cleanCnpj.Length != 14)
+                throw new ArgumentException("CNPJ deve ter 14 dígitos");
+
+            if (!cleanCnpj.All(char.IsDigit))
+                throw new ArgumentException("CNPJ deve conter apenas números");
+        }
+
+        /// <summary>
+        /// Validações específicas para pessoa física
+        /// </summary>
+        private static void ValidateNaturalPersonData(CreatePartnerCommand request)
+        {
+            // Validar comprimento do CPF (básico, o Value Object fará validação completa)
+            var cleanCpf = request.Document.Replace(".", "").Replace("-", "");
+            if (cleanCpf.Length != 11)
+                throw new ArgumentException("CPF deve ter 11 dígitos");
+
+            if (!cleanCpf.All(char.IsDigit))
+                throw new ArgumentException("CPF deve conter apenas números");
         }
 
         /// <summary>
         /// Cria a entidade Partner baseada no tipo de personalidade
         /// </summary>
-        private static Partner CreatePartnerEntity(CreatePartnerCommand request)
+        private Partner CreatePartnerEntity(CreatePartnerCommand request)
         {
             try
             {
                 if (request.PersonalityType == "J")
                 {
-                    // Pessoa Jurídica - usar CNPJ
+                    _logger.LogDebug("Criando pessoa jurídica com CNPJ: {Document}",
+                        request.Document.Substring(0, 8) + "****"); // Log parcial por segurança
+
                     return Partner.CreateLegalPerson(
                         companyName: request.CompanyName,
                         cnpj: request.Document,
@@ -89,7 +169,9 @@ namespace ACTi.Application.Handlers
                 }
                 else // PersonalityType == "F"
                 {
-                    // Pessoa Física - usar CPF
+                    _logger.LogDebug("Criando pessoa física com CPF: {Document}",
+                        request.Document.Substring(0, 6) + "*****"); // Log parcial por segurança
+
                     return Partner.CreateNaturalPerson(
                         fullName: request.CompanyName,
                         cpf: request.Document,
@@ -114,13 +196,53 @@ namespace ACTi.Application.Handlers
         }
 
         /// <summary>
+        /// Valida se já existe parceiro com os mesmos dados únicos
+        /// </summary>
+        private async Task ValidateDuplicatesAsync(Partner partner, CancellationToken cancellationToken)
+        {
+            // Verificar duplicidade de CNPJ (para pessoa jurídica)
+            if (partner.Cnpj != null)
+            {
+                var cnpjExists = await _partnerRepository.CnpjExistsAsync(partner.Cnpj.Number, cancellationToken: cancellationToken);
+                if (cnpjExists)
+                {
+                    _logger.LogWarning("Tentativa de cadastro com CNPJ já existente: {CNPJ}",
+                        partner.Cnpj.Formatted.Substring(0, 8) + "****");
+                    throw new InvalidOperationException("Já existe um parceiro cadastrado com este CNPJ");
+                }
+            }
+
+            // Verificar duplicidade de CPF (para pessoa física)
+            if (partner.Cpf != null)
+            {
+                var cpfExists = await _partnerRepository.CpfExistsAsync(partner.Cpf.Number, cancellationToken: cancellationToken);
+                if (cpfExists)
+                {
+                    _logger.LogWarning("Tentativa de cadastro com CPF já existente: {CPF}",
+                        partner.Cpf.Formatted.Substring(0, 6) + "*****");
+                    throw new InvalidOperationException("Já existe um parceiro cadastrado com este CPF");
+                }
+            }
+
+            // Verificar duplicidade de email
+            var emailExists = await _partnerRepository.EmailExistsAsync(partner.Email.Address, cancellationToken: cancellationToken);
+            if (emailExists)
+            {
+                _logger.LogWarning("Tentativa de cadastro com email já existente: {Email}", partner.Email.Address);
+                throw new InvalidOperationException("Já existe um parceiro cadastrado com este email");
+            }
+
+            _logger.LogDebug("Validação de duplicidade concluída - nenhum conflito encontrado");
+        }
+
+        /// <summary>
         /// Mapeia entidade Partner para DTO de resposta
         /// </summary>
-        private static PartnerResponse MapToResponse(Partner partner, int partnerId)
+        private static PartnerResponse MapToResponse(Partner partner)
         {
             return new PartnerResponse
             {
-                Id = partnerId,
+                Id = partner.Id,
                 CompanyName = partner.CompanyName,
                 FormattedDocument = partner.FormattedDocument,
                 PersonType = partner.PersonType,
@@ -141,14 +263,6 @@ namespace ACTi.Application.Handlers
                 CreatedAt = partner.CreatedAt,
                 UpdatedAt = partner.UpdatedAt
             };
-        }
-
-        /// <summary>
-        /// Gera ID temporário (substituto até implementarmos Repository)
-        /// </summary>
-        private static int GenerateTemporaryId()
-        {
-            return new Random().Next(1, 1000);
         }
     }
 }
