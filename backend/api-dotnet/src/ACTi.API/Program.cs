@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using ACTi.Application.Repositories;
 using ACTi.Infrastructure.Data;
+using ACTi.Infrastructure.Repositories;
 using ACTi.Infrastructure.Services.ExternalApis;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
-using ACTi.Application.Repositories;     
-using ACTi.Infrastructure.Repositories;   
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,12 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
         options.JsonSerializerOptions.WriteIndented = true; // Para desenvolvimento
     });
+
+// Configurar comportamento de validação - desabilitar respostas automáticas
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
+});
 
 // Configurar Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -63,7 +70,7 @@ else
         options.UseSqlServer(connectionString, b => b.MigrationsAssembly("ACTi.Infrastructure")));
 }
 
-// ⚡ CONFIGURAÇÃO MEDIATR v13 (NOVA SINTAXE)
+// ⚡ CONFIGURAÇÃO MEDIATR v13
 builder.Services.AddMediatR(cfg => {
     // Registrar handlers do assembly da Application layer
     cfg.RegisterServicesFromAssembly(typeof(ACTi.Application.Commands.CreatePartnerCommand).Assembly);
@@ -191,7 +198,6 @@ using (var scope = app.Services.CreateScope())
 
 app.Logger.LogInformation("=== ACTi API Iniciada ===");
 app.Logger.LogInformation("Ambiente: {Environment}", app.Environment.EnvironmentName);
-app.Logger.LogInformation("URLs: {Urls}", string.Join(", ", app.Urls));
 
 if (app.Environment.IsDevelopment())
 {

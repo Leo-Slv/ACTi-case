@@ -27,20 +27,50 @@ namespace ACTi.API.Controllers
         /// Criar novo parceiro comercial
         /// </summary>
         /// <param name="request">Dados do parceiro a ser criado</param>
-        /// <returns>Dados do parceiro criado</returns>
+        /// <returns>Resposta padronizada com dados do parceiro criado</returns>
         /// <response code="201">Parceiro criado com sucesso</response>
-        /// <response code="400">Dados inválidos fornecidos</response>
+        /// <response code="400">Dados inválidos ou parceiro já existe</response>
         /// <response code="500">Erro interno do servidor</response>
         [HttpPost]
-        [ProducesResponseType(typeof(PartnerResponse), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<PartnerResponse>> CriarParceiro(
+        [ProducesResponseType(typeof(StandardApiResponse<PartnerResponse>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(StandardApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(StandardApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<StandardApiResponse<PartnerResponse>>> CriarParceiro(
             [FromBody] CreatePartnerRequest request)
         {
             try
             {
-                _logger.LogInformation("Iniciando criação de parceiro: {CompanyName}", request.CompanyName);
+                // Validação se request é null
+                if (request == null)
+                {
+                    _logger.LogWarning("Request nulo recebido");
+                    return BadRequest(CreateErrorResponse<object>(
+                        "Os dados do parceiro são obrigatórios",
+                        "NULL_REQUEST"
+                    ));
+                }
+
+                _logger.LogInformation("Iniciando criação de parceiro: {CompanyName}", request.CompanyName ?? "Nome não informado");
+
+                // Validação básica do modelo
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(x => x.Value.Errors.Count > 0)
+                        .ToDictionary(
+                            kvp => kvp.Key,
+                            kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                        );
+
+                    var firstError = errors.FirstOrDefault();
+                    var errorMessage = firstError.Value?.FirstOrDefault() ?? "Dados inválidos fornecidos";
+
+                    return BadRequest(CreateErrorResponse<object>(
+                        errorMessage,
+                        "VALIDATION_ERROR",
+                        errors
+                    ));
+                }
 
                 // Mapear Request para Command
                 var command = MapToCommand(request);
@@ -50,57 +80,76 @@ namespace ACTi.API.Controllers
 
                 _logger.LogInformation("Parceiro criado com sucesso. ID: {PartnerId}", result.Id);
 
-                // Retornar 201 Created com dados do parceiro
+                // Retornar 201 Created com resposta padronizada
                 return CreatedAtAction(
-                    nameof(ObterParceiro),
+                    nameof(CriarParceiro),
                     new { id = result.Id },
-                    result);
+                    CreateSuccessResponse(result, "Parceiro cadastrado com sucesso")
+                );
+            }
+            catch (ArgumentNullException ex)
+            {
+                _logger.LogWarning("Argumento nulo ao criar parceiro: {Error}", ex.Message);
+
+                return BadRequest(CreateErrorResponse<object>(
+                    "Campo obrigatório não informado",
+                    "REQUIRED_FIELD_ERROR"
+                ));
             }
             catch (ArgumentException ex)
             {
                 _logger.LogWarning("Erro de validação ao criar parceiro: {Error}", ex.Message);
-                return BadRequest(new { error = ex.Message });
+
+                var message = string.IsNullOrEmpty(ex.Message) ? "Dados inválidos fornecidos" : ex.Message;
+
+                return BadRequest(CreateErrorResponse<object>(
+                    message,
+                    "VALIDATION_ERROR"
+                ));
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Erro de regra de negócio ao criar parceiro: {Error}", ex.Message);
+
+                var message = string.IsNullOrEmpty(ex.Message) ? "Operação não permitida" : ex.Message;
+
+                return BadRequest(CreateErrorResponse<object>(
+                    message,
+                    "BUSINESS_RULE_ERROR"
+                ));
+            }
+            catch (TimeoutException ex)
+            {
+                _logger.LogWarning("Timeout ao criar parceiro: {Error}", ex.Message);
+
+                return StatusCode(408, CreateErrorResponse<object>(
+                    "Operação demorou muito para ser processada. Tente novamente.",
+                    "TIMEOUT_ERROR"
+                ));
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning("Acesso negado ao criar parceiro: {Error}", ex.Message);
+
+                return StatusCode(403, CreateErrorResponse<object>(
+                    "Acesso negado para esta operação",
+                    "ACCESS_DENIED"
+                ));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro interno ao criar parceiro");
-                return StatusCode(500, new { error = "Erro interno do servidor" });
+                _logger.LogError(ex, "Erro interno inesperado ao criar parceiro");
+
+                return StatusCode(500, CreateErrorResponse<object>(
+                    "Erro interno do servidor. Tente novamente mais tarde.",
+                    "INTERNAL_ERROR",
+                    new
+                    {
+                        errorType = ex.GetType().Name,
+                        timestamp = DateTime.UtcNow
+                    }
+                ));
             }
-        }
-
-        /// <summary>
-        /// Obter parceiro por ID (placeholder para CreatedAtAction)
-        /// </summary>
-        /// <param name="id">ID do parceiro</param>
-        /// <returns>Dados do parceiro</returns>
-        [HttpGet("{id:int}")]
-        [ProducesResponseType(typeof(PartnerResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<PartnerResponse>> ObterParceiro(int id)
-        {
-            // TODO: Implementar quando tivermos Query/Repository
-            _logger.LogInformation("Tentativa de obter parceiro ID: {PartnerId}", id);
-
-            return NotFound(new { error = "Funcionalidade ainda não implementada" });
-        }
-
-        /// <summary>
-        /// Endpoint de teste para verificar se API está funcionando
-        /// </summary>
-        /// <returns>Mensagem de teste</returns>
-        [HttpGet("test")]
-        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-        public IActionResult Test()
-        {
-            _logger.LogInformation("Endpoint de teste chamado");
-
-            return Ok(new
-            {
-                message = "ACTi API está funcionando!",
-                timestamp = DateTime.UtcNow,
-                version = "1.0.0",
-                environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"
-            });
         }
 
         /// <summary>
@@ -125,5 +174,71 @@ namespace ACTi.API.Controllers
                 Observation = request.Observation
             };
         }
+
+        /// <summary>
+        /// Criar resposta de sucesso padronizada
+        /// </summary>
+        private static StandardApiResponse<T> CreateSuccessResponse<T>(T data, string message = "Operação realizada com sucesso")
+        {
+            return new StandardApiResponse<T>
+            {
+                Success = true,
+                Message = message,
+                Code = "SUCCESS",
+                Data = data,
+                Timestamp = DateTime.UtcNow
+            };
+        }
+
+        /// <summary>
+        /// Criar resposta de erro padronizada
+        /// </summary>
+        private static StandardApiResponse<T> CreateErrorResponse<T>(string message, string code, object? details = null)
+        {
+            return new StandardApiResponse<T>
+            {
+                Success = false,
+                Message = message,
+                Code = code,
+                Details = details,
+                Timestamp = DateTime.UtcNow
+            };
+        }
+    }
+
+    /// <summary>
+    /// Resposta padronizada para API ACTi
+    /// </summary>
+    public class StandardApiResponse<T>
+    {
+        /// <summary>
+        /// Indica se a operação foi bem-sucedida
+        /// </summary>
+        public bool Success { get; set; }
+
+        /// <summary>
+        /// Mensagem legível para o usuário
+        /// </summary>
+        public string Message { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Código identificador do tipo de erro/sucesso
+        /// </summary>
+        public string Code { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Dados retornados pela operação
+        /// </summary>
+        public T? Data { get; set; }
+
+        /// <summary>
+        /// Detalhes adicionais (erros de validação, etc)
+        /// </summary>
+        public object? Details { get; set; }
+
+        /// <summary>
+        /// Timestamp da resposta
+        /// </summary>
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
 }

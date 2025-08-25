@@ -43,7 +43,7 @@ namespace ACTi.Infrastructure.Data
         private static void ConfigureGlobalSettings(ModelBuilder modelBuilder)
         {
             // Configurar esquema padrão
-            modelBuilder.HasDefaultSchema("acti");
+            //modelBuilder.HasDefaultSchema("acti");
 
             // Configurar convenções de nomeação para snake_case
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
