@@ -1,11 +1,10 @@
-﻿// backend/api-dotnet/src/ACTi.Application/Handlers/CreatePartnerHandler.cs
-using System;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using ACTi.Application.Commands;
 using ACTi.Application.DTOs.Responses;
+using ACTi.Application.Repositories;
 using ACTi.Domain.Entities;
-using ACTi.Infrastructure.Repositories;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
@@ -17,7 +16,7 @@ namespace ACTi.Application.Handlers
     /// </summary>
     public class CreatePartnerHandler : IRequestHandler<CreatePartnerCommand, PartnerResponse>
     {
-        private readonly IPartnerRepository _partnerRepository;
+        private readonly IPartnerRepository _partnerRepository; 
         private readonly ILogger<CreatePartnerHandler> _logger;
 
         public CreatePartnerHandler(

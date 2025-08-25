@@ -1,9 +1,9 @@
-﻿// backend/api-dotnet/src/ACTi.API/Program.cs
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using ACTi.Infrastructure.Data;
-using ACTi.Infrastructure.Repositories;
 using ACTi.Infrastructure.Services.ExternalApis;
 using System.Text.Json.Serialization;
+using ACTi.Application.Repositories;     
+using ACTi.Infrastructure.Repositories;   
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,12 +56,6 @@ if (string.IsNullOrEmpty(connectionString))
     builder.Services.AddDbContext<ACTiDbContext>(options =>
         options.UseSqlite(connectionString, b => b.MigrationsAssembly("ACTi.Infrastructure")));
 }
-else if (connectionString.Contains("PostgreSQL") || connectionString.Contains("postgres"))
-{
-    // Produção com PostgreSQL
-    builder.Services.AddDbContext<ACTiDbContext>(options =>
-        options.UseNpgsql(connectionString, b => b.MigrationsAssembly("ACTi.Infrastructure")));
-}
 else
 {
     // SQL Server
@@ -69,9 +63,8 @@ else
         options.UseSqlServer(connectionString, b => b.MigrationsAssembly("ACTi.Infrastructure")));
 }
 
-// ⚡ CONFIGURAÇÃO MEDIATR (CQRS)
-builder.Services.AddMediatR(cfg =>
-{
+// ⚡ CONFIGURAÇÃO MEDIATR v13 (NOVA SINTAXE)
+builder.Services.AddMediatR(cfg => {
     // Registrar handlers do assembly da Application layer
     cfg.RegisterServicesFromAssembly(typeof(ACTi.Application.Commands.CreatePartnerCommand).Assembly);
 });
@@ -132,12 +125,6 @@ else
     builder.Logging.SetMinimumLevel(LogLevel.Information);
 }
 
-// ⚡ CONFIGURAÇÃO DE HEALTHCHECKS
-builder.Services.AddHealthChecks()
-    .AddDbContext<ACTiDbContext>()
-    .AddUrlGroup(new Uri("https://viacep.com.br"), "ViaCEP")
-    .AddUrlGroup(new Uri("https://receitaws.com.br"), "ReceitaWS");
-
 // ============================================================================
 // CONFIGURAÇÃO DO PIPELINE DE REQUISIÇÕES
 // ============================================================================
@@ -171,10 +158,6 @@ else
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthorization();
-
-// Health checks
-app.MapHealthChecks("/health");
-app.MapHealthChecks("/health/ready");
 
 // Controllers
 app.MapControllers();
