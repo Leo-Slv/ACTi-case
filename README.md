@@ -92,7 +92,7 @@ Guarde essa connection string — o backend precisa dela (veja seção Backend).
 
 ## 4) Backend (.NET)
 
-> Observação: no repositório o projeto de API costuma estar em `backend/src/ACTi.API` (por exemplo `dotnet run --project src/ACTi.API`). Ajuste caminhos caso estejam diferentes.
+> Observação: no repositório o projeto de API costuma estar em `backend/api-dotnet/src/ACTi.API` (por exemplo `dotnet run --project api-dotnet/src/ACTi.API`). Ajuste caminhos caso estejam diferentes.
 
 ### 4.1 Configurar variáveis e connection string
 
@@ -119,7 +119,7 @@ Exemplo `appsettings.Development.json`:
 
 ### 4.2 Restaurar dependências, build e rodar
 
-No terminal, a partir da pasta `backend` (ou `backend/src/ACTi.API`) rode:
+No terminal, a partir da pasta `backend` (ou `backend/api-dotnet/src/ACTi.API`) rode:
 
 ```bash
 # ir para a pasta do backend
@@ -129,7 +129,7 @@ dotnet restore
 # compilar
 dotnet build
 # rodar (ajuste o caminho do projeto se necessário)
-dotnet run --project src/ACTi.API
+dotnet run --project /api-dotnet/src/ACTi.API
 ```
 
 Se o projeto estiver configurado para `launchSettings.json` com profiles, você também pode abrir com Visual Studio e executar via IIS Express / Kestrel.
