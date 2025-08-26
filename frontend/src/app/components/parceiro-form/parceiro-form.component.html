@@ -10,7 +10,7 @@
 
 <div class="container">
   <div class="row justify-content-center">
-    <div class="col-md-10">
+    <div class="col-md-12">
       <!-- Alertas de sucesso/erro -->
       <div *ngIf="showSuccess" class="alert success-alert alert-dismissible fade show" role="alert">
         <strong>Sucesso!</strong> Parceiro cadastrado com sucesso.
@@ -28,61 +28,64 @@
         </div>
         <div class="card-body">
           <form [formGroup]="parceiroForm" (ngSubmit)="onSubmit()" novalidate>
+            <!-- Personalidade -->
             <div class="row mb-3">
               <div class="col-md-6">
-                <label for="tipoPessoa" class="form-label">Tipo de Pessoa *</label>
-                <select class="form-select" id="tipoPessoa" 
-                        formControlName="tipoPessoa"
-                        [ngClass]="{'input-error': parceiroForm.get('tipoPessoa')?.invalid && parceiroForm.get('tipoPessoa')?.touched}">
+                <label for="personalidade" class="form-label">Personalidade *</label>
+                <select class="form-select" id="personalidade" 
+                        formControlName="personalidade"
+                        [ngClass]="{'input-error': parceiroForm.get('personalidade')?.invalid && parceiroForm.get('personalidade')?.touched}">
                   <option value="">Selecione...</option>
                   <option value="F">Pessoa Física</option>
                   <option value="J">Pessoa Jurídica</option>
                 </select>
-                <div class="error-message" *ngIf="parceiroForm.get('tipoPessoa')?.invalid && parceiroForm.get('tipoPessoa')?.touched">
-                  Tipo de pessoa é obrigatório.
+                <div class="error-message" *ngIf="parceiroForm.get('personalidade')?.invalid && parceiroForm.get('personalidade')?.touched">
+                  Personalidade é obrigatória.
                 </div>
               </div>
               <div class="col-md-6">
-                <label for="documento" class="form-label" *ngIf="parceiroForm.get('tipoPessoa')?.value === 'F'">CPF *</label>
-                <label for="documento" class="form-label" *ngIf="parceiroForm.get('tipoPessoa')?.value === 'J'">CNPJ *</label>
-                <label for="documento" class="form-label" *ngIf="!parceiroForm.get('tipoPessoa')?.value">Documento *</label>
-                <input type="text" class="form-control" id="documento" 
-       formControlName="documento"
-       (blur)="consultarDocumento()"
-       [ngClass]="{'input-error': (parceiroForm.get('documento')?.invalid && parceiroForm.get('documento')?.touched) || documentoInvalido}"
-       [appMask]="parceiroForm.get('tipoPessoa')?.value === 'F' ? 'cpf' : 'cnpj'">
-                <div class="error-message" *ngIf="parceiroForm.get('documento')?.invalid && parceiroForm.get('documento')?.touched">
-                  <span *ngIf="parceiroForm.get('tipoPessoa')?.value === 'F'">CPF é obrigatório.</span>
-                  <span *ngIf="parceiroForm.get('tipoPessoa')?.value === 'J'">CNPJ é obrigatório.</span>
-                  <span *ngIf="!parceiroForm.get('tipoPessoa')?.value">Documento é obrigatório.</span>
+                <label for="cnpjCpf" class="form-label" *ngIf="parceiroForm.get('personalidade')?.value === 'F'">CPF *</label>
+                <label for="cnpjCpf" class="form-label" *ngIf="parceiroForm.get('personalidade')?.value === 'J'">CNPJ *</label>
+                <label for="cnpjCpf" class="form-label" *ngIf="!parceiroForm.get('personalidade')?.value">Documento *</label>
+                <input type="text" class="form-control" id="cnpjCpf" 
+                       formControlName="cnpjCpf"
+                       (blur)="consultarDocumento()"
+                       [ngClass]="{'input-error': (parceiroForm.get('cnpjCpf')?.invalid && parceiroForm.get('cnpjCpf')?.touched) || documentoInvalido}"
+                       [appMask]="parceiroForm.get('personalidade')?.value === 'F' ? 'cpf' : 'cnpj'">
+                <div class="error-message" *ngIf="parceiroForm.get('cnpjCpf')?.invalid && parceiroForm.get('cnpjCpf')?.touched">
+                  <span *ngIf="parceiroForm.get('personalidade')?.value === 'F'">CPF é obrigatório.</span>
+                  <span *ngIf="parceiroForm.get('personalidade')?.value === 'J'">CNPJ é obrigatório.</span>
+                  <span *ngIf="!parceiroForm.get('personalidade')?.value">Documento é obrigatório.</span>
                 </div>
                 <div class="error-message" *ngIf="documentoInvalido">
-                  <span *ngIf="parceiroForm.get('tipoPessoa')?.value === 'F'">CPF inválido.</span>
-                  <span *ngIf="parceiroForm.get('tipoPessoa')?.value === 'J'">CNPJ inválido.</span>
+                  <span *ngIf="parceiroForm.get('personalidade')?.value === 'F'">CPF inválido.</span>
+                  <span *ngIf="parceiroForm.get('personalidade')?.value === 'J'">CNPJ inválido.</span>
                 </div>
               </div>
             </div>
 
+            <!-- Razão Social -->
             <div class="row mb-3">
               <div class="col-md-12">
-                <label for="nome" class="form-label">Nome Completo / Razão Social *</label>
-                <input type="text" class="form-control" id="nome" 
-                       formControlName="nome"
-                       [ngClass]="{'input-error': parceiroForm.get('nome')?.invalid && parceiroForm.get('nome')?.touched}">
-                <div class="error-message" *ngIf="parceiroForm.get('nome')?.invalid && parceiroForm.get('nome')?.touched">
-                  Nome/Razão Social é obrigatório.
+                <label for="razaoSocial" class="form-label">Razão Social *</label>
+                <input type="text" class="form-control" id="razaoSocial" 
+                       formControlName="razaoSocial"
+                       [ngClass]="{'input-error': parceiroForm.get('razaoSocial')?.invalid && parceiroForm.get('razaoSocial')?.touched}">
+                <div class="error-message" *ngIf="parceiroForm.get('razaoSocial')?.invalid && parceiroForm.get('razaoSocial')?.touched">
+                  Razão Social é obrigatória.
                 </div>
               </div>
             </div>
 
+            <!-- CEP e Telefone -->
             <div class="row mb-3">
               <div class="col-md-6">
                 <label for="cep" class="form-label">CEP *</label>
                 <input type="text" class="form-control" id="cep" 
-       formControlName="cep"
-       (blur)="consultarCep()"
-       [ngClass]="{'input-error': (parceiroForm.get('cep')?.invalid && parceiroForm.get('cep')?.touched) || cepInvalido}"
-       appMask="cep">
+                       formControlName="cep"
+                       (blur)="consultarCep()"
+                       [ngClass]="{'input-error': (parceiroForm.get('cep')?.invalid && parceiroForm.get('cep')?.touched) || cepInvalido}"
+                       appMask="cep">
                 <div class="error-message" *ngIf="parceiroForm.get('cep')?.invalid && parceiroForm.get('cep')?.touched">
                   CEP é obrigatório.
                 </div>
@@ -93,15 +96,16 @@
               <div class="col-md-6">
                 <label for="telefone" class="form-label">Telefone *</label>
                 <input type="text" class="form-control" id="telefone" 
-       formControlName="telefone"
-       [ngClass]="{'input-error': parceiroForm.get('telefone')?.invalid && parceiroForm.get('telefone')?.touched}"
-       appMask="telefone">
+                       formControlName="telefone"
+                       [ngClass]="{'input-error': parceiroForm.get('telefone')?.invalid && parceiroForm.get('telefone')?.touched}"
+                       appMask="telefone">
                 <div class="error-message" *ngIf="parceiroForm.get('telefone')?.invalid && parceiroForm.get('telefone')?.touched">
                   Telefone é obrigatório.
                 </div>
               </div>
             </div>
 
+            <!-- Endereço -->
             <div class="row mb-3">
               <div class="col-md-8">
                 <label for="logradouro" class="form-label">Logradouro *</label>
@@ -134,26 +138,35 @@
                 </div>
               </div>
               <div class="col-md-6">
-                <label for="cidade" class="form-label">Cidade *</label>
-                <input type="text" class="form-control" id="cidade" 
-                       formControlName="cidade"
-                       [ngClass]="{'input-error': parceiroForm.get('cidade')?.invalid && parceiroForm.get('cidade')?.touched}">
-                <div class="error-message" *ngIf="parceiroForm.get('cidade')?.invalid && parceiroForm.get('cidade')?.touched">
-                  Cidade é obrigatório.
-                </div>
+                <label for="complemento" class="form-label">Complemento</label>
+                <input type="text" class="form-control" id="complemento" 
+                       formControlName="complemento">
               </div>
             </div>
 
             <div class="row mb-3">
               <div class="col-md-6">
-                <label for="estado" class="form-label">Estado *</label>
-                <input type="text" class="form-control" id="estado" 
-                       formControlName="estado"
-                       [ngClass]="{'input-error': parceiroForm.get('estado')?.invalid && parceiroForm.get('estado')?.touched}">
-                <div class="error-message" *ngIf="parceiroForm.get('estado')?.invalid && parceiroForm.get('estado')?.touched">
-                  Estado é obrigatório.
+                <label for="municipio" class="form-label">Município *</label>
+                <input type="text" class="form-control" id="municipio" 
+                       formControlName="municipio"
+                       [ngClass]="{'input-error': parceiroForm.get('municipio')?.invalid && parceiroForm.get('municipio')?.touched}">
+                <div class="error-message" *ngIf="parceiroForm.get('municipio')?.invalid && parceiroForm.get('municipio')?.touched">
+                  Município é obrigatório.
                 </div>
               </div>
+              <div class="col-md-6">
+                <label for="uf" class="form-label">UF *</label>
+                <input type="text" class="form-control" id="uf" 
+                       formControlName="uf"
+                       [ngClass]="{'input-error': parceiroForm.get('uf')?.invalid && parceiroForm.get('uf')?.touched}">
+                <div class="error-message" *ngIf="parceiroForm.get('uf')?.invalid && parceiroForm.get('uf')?.touched">
+                  UF é obrigatória.
+                </div>
+              </div>
+            </div>
+
+            <!-- Email e Observação -->
+            <div class="row mb-3">
               <div class="col-md-6">
                 <label for="email" class="form-label">E-mail *</label>
                 <input type="email" class="form-control" id="email" 
@@ -163,6 +176,11 @@
                   <span *ngIf="parceiroForm.get('email')?.errors?.['required']">E-mail é obrigatório.</span>
                   <span *ngIf="parceiroForm.get('email')?.errors?.['email']">E-mail inválido.</span>
                 </div>
+              </div>
+              <div class="col-md-6">
+                <label for="observacao" class="form-label">Observação</label>
+                <textarea class="form-control" id="observacao" 
+                          formControlName="observacao" rows="3"></textarea>
               </div>
             </div>
 

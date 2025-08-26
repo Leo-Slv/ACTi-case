@@ -2,7 +2,7 @@ import { Directive, ElementRef, HostListener, Input } from '@angular/core';
 
 @Directive({
   selector: '[appMask]',
-  standalone: false  // Certifique-se de que não é standalone
+  standalone: true
 })
 export class MaskDirective {
   @Input('appMask') maskType: string = '';

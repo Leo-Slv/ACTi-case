@@ -1,13 +1,15 @@
 export interface Parceiro {
-  tipoPessoa: string;
-  documento: string;
-  nome: string;
+  personalidade: string; // 'F' para Física, 'J' para Jurídica
+  razaoSocial: string;
+  cnpjCpf: string;
   cep: string;
-  telefone: string;
+  uf: string;
+  municipio: string;
   logradouro: string;
   numero: string;
   bairro: string;
-  cidade: string;
-  estado: string;
   email: string;
+  telefone: string;
+  complemento?: string; // Opcional
+  observacao?: string;  // Opcional
 }
