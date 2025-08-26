@@ -8,7 +8,7 @@ import { ParceiroService } from '../../services/parceiro.service';
 import { ViaCepService } from '../../services/viacep.service';
 import { ReceitaWSService } from '../../services/receitaws.service';
 import { ValidatorsService } from '../../services/validators.service';
-import { Parceiro } from '../../models/parceiro.model';
+import { Parceiro, ApiResponse } from '../../models/parceiro.model';
 
 @Component({
   selector: 'app-parceiro-form',
@@ -34,36 +34,36 @@ export class ParceiroFormComponent implements OnInit {
     private validatorsService: ValidatorsService
   ) {
     this.parceiroForm = this.fb.group({
-      personalidade: ['', Validators.required],
-      razaoSocial: ['', Validators.required],
-      cnpjCpf: ['', Validators.required],
-      cep: ['', Validators.required],
-      uf: ['', Validators.required],
-      municipio: ['', Validators.required],
-      logradouro: ['', Validators.required],
-      numero: ['', Validators.required],
-      bairro: ['', Validators.required],
+      personalityType: ['', Validators.required],
+      companyName: ['', Validators.required],
+      document: ['', Validators.required],
+      zipCode: ['', Validators.required],
+      state: ['', Validators.required],
+      city: ['', Validators.required],
+      street: ['', Validators.required],
+      number: ['', Validators.required],
+      neighborhood: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      telefone: ['', Validators.required],
-      complemento: [''],
-      observacao: ['']
+      phone: ['', Validators.required],
+      complement: [''],
+      observation: ['']
     });
   }
 
   ngOnInit(): void {
-    this.parceiroForm.get('personalidade')?.valueChanges.subscribe(value => {
+    this.parceiroForm.get('personalityType')?.valueChanges.subscribe(value => {
       this.onPersonalidadeChange(value);
     });
   }
 
   onPersonalidadeChange(tipo: string): void {
     this.documentoInvalido = false;
-    this.parceiroForm.get('cnpjCpf')?.setValue('');
+    this.parceiroForm.get('document')?.setValue('');
   }
 
   consultarDocumento(): void {
-    const documentoControl = this.parceiroForm.get('cnpjCpf');
-    const personalidadeControl = this.parceiroForm.get('personalidade');
+    const documentoControl = this.parceiroForm.get('document');
+    const personalidadeControl = this.parceiroForm.get('personalityType');
     
     if (!documentoControl?.value || !personalidadeControl?.value) return;
 
@@ -79,7 +79,7 @@ export class ParceiroFormComponent implements OnInit {
         this.receitaWSService.consultarCNPJ(documentoLimpo).subscribe({
           next: (response) => {
             if (response.nome) {
-              this.parceiroForm.get('razaoSocial')?.setValue(response.nome);
+              this.parceiroForm.get('companyName')?.setValue(response.nome);
             }
             this.loading = false;
           },
@@ -95,7 +95,7 @@ export class ParceiroFormComponent implements OnInit {
   }
 
   consultarCep(): void {
-    const cepControl = this.parceiroForm.get('cep');
+    const cepControl = this.parceiroForm.get('zipCode');
     
     if (!cepControl?.value) return;
 
@@ -114,10 +114,10 @@ export class ParceiroFormComponent implements OnInit {
         if (response.erro) {
           this.cepInvalido = true;
         } else {
-          this.parceiroForm.get('logradouro')?.setValue(response.logradouro);
-          this.parceiroForm.get('bairro')?.setValue(response.bairro);
-          this.parceiroForm.get('municipio')?.setValue(response.localidade);
-          this.parceiroForm.get('uf')?.setValue(response.uf);
+          this.parceiroForm.get('street')?.setValue(response.logradouro);
+          this.parceiroForm.get('neighborhood')?.setValue(response.bairro);
+          this.parceiroForm.get('city')?.setValue(response.localidade);
+          this.parceiroForm.get('state')?.setValue(response.uf);
         }
         this.loading = false;
       },
@@ -137,28 +137,36 @@ export class ParceiroFormComponent implements OnInit {
     }
 
     this.loading = true;
+    this.showError = false;
 
     const formData: Parceiro = this.parceiroForm.value;
     
     // Limpar dados para envio (remover máscaras)
-    formData.cnpjCpf = formData.cnpjCpf.replace(/\D/g, '');
-    formData.cep = formData.cep.replace(/\D/g, '');
-    formData.telefone = formData.telefone.replace(/\D/g, '');
+    formData.document = formData.document.replace(/\D/g, '');
+    formData.zipCode = formData.zipCode.replace(/\D/g, '');
+    formData.phone = formData.phone.replace(/\D/g, '');
 
     this.parceiroService.cadastrarParceiro(formData).subscribe({
-      next: (response) => {
+      next: (response: ApiResponse) => {
         this.loading = false;
-        this.showSuccess = true;
-        this.showError = false;
-        this.parceiroForm.reset();
+        
+        if (response.success) {
+          this.showSuccess = true;
+          this.showError = false;
+          this.parceiroForm.reset();
+        } else {
+          this.showSuccess = false;
+          this.showError = true;
+          this.errorMessage = response.message || 'Erro ao cadastrar parceiro.';
+        }
       },
       error: (error) => {
         this.loading = false;
         this.showSuccess = false;
         this.showError = true;
         
-        if (error.error && error.error.mensagem) {
-          this.errorMessage = error.error.mensagem;
+        if (error.error && error.error.message) {
+          this.errorMessage = error.error.message;
         } else {
           this.errorMessage = 'Erro ao cadastrar parceiro. Tente novamente.';
         }

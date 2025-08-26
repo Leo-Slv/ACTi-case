@@ -31,35 +31,35 @@
             <!-- Personalidade -->
             <div class="row mb-3">
               <div class="col-md-6">
-                <label for="personalidade" class="form-label">Personalidade *</label>
-                <select class="form-select" id="personalidade" 
-                        formControlName="personalidade"
-                        [ngClass]="{'input-error': parceiroForm.get('personalidade')?.invalid && parceiroForm.get('personalidade')?.touched}">
+                <label for="personalityType" class="form-label">Personalidade *</label>
+                <select class="form-select" id="personalityType" 
+                        formControlName="personalityType"
+                        [ngClass]="{'input-error': parceiroForm.get('personalityType')?.invalid && parceiroForm.get('personalityType')?.touched}">
                   <option value="">Selecione...</option>
                   <option value="F">Pessoa Física</option>
                   <option value="J">Pessoa Jurídica</option>
                 </select>
-                <div class="error-message" *ngIf="parceiroForm.get('personalidade')?.invalid && parceiroForm.get('personalidade')?.touched">
+                <div class="error-message" *ngIf="parceiroForm.get('personalityType')?.invalid && parceiroForm.get('personalityType')?.touched">
                   Personalidade é obrigatória.
                 </div>
               </div>
               <div class="col-md-6">
-                <label for="cnpjCpf" class="form-label" *ngIf="parceiroForm.get('personalidade')?.value === 'F'">CPF *</label>
-                <label for="cnpjCpf" class="form-label" *ngIf="parceiroForm.get('personalidade')?.value === 'J'">CNPJ *</label>
-                <label for="cnpjCpf" class="form-label" *ngIf="!parceiroForm.get('personalidade')?.value">Documento *</label>
-                <input type="text" class="form-control" id="cnpjCpf" 
-                       formControlName="cnpjCpf"
+                <label for="document" class="form-label" *ngIf="parceiroForm.get('personalityType')?.value === 'F'">CPF *</label>
+                <label for="document" class="form-label" *ngIf="parceiroForm.get('personalityType')?.value === 'J'">CNPJ *</label>
+                <label for="document" class="form-label" *ngIf="!parceiroForm.get('personalityType')?.value">Documento *</label>
+                <input type="text" class="form-control" id="document" 
+                       formControlName="document"
                        (blur)="consultarDocumento()"
-                       [ngClass]="{'input-error': (parceiroForm.get('cnpjCpf')?.invalid && parceiroForm.get('cnpjCpf')?.touched) || documentoInvalido}"
-                       [appMask]="parceiroForm.get('personalidade')?.value === 'F' ? 'cpf' : 'cnpj'">
-                <div class="error-message" *ngIf="parceiroForm.get('cnpjCpf')?.invalid && parceiroForm.get('cnpjCpf')?.touched">
-                  <span *ngIf="parceiroForm.get('personalidade')?.value === 'F'">CPF é obrigatório.</span>
-                  <span *ngIf="parceiroForm.get('personalidade')?.value === 'J'">CNPJ é obrigatório.</span>
-                  <span *ngIf="!parceiroForm.get('personalidade')?.value">Documento é obrigatório.</span>
+                       [ngClass]="{'input-error': (parceiroForm.get('document')?.invalid && parceiroForm.get('document')?.touched) || documentoInvalido}"
+                       [appMask]="parceiroForm.get('personalityType')?.value === 'F' ? 'cpf' : 'cnpj'">
+                <div class="error-message" *ngIf="parceiroForm.get('document')?.invalid && parceiroForm.get('document')?.touched">
+                  <span *ngIf="parceiroForm.get('personalityType')?.value === 'F'">CPF é obrigatório.</span>
+                  <span *ngIf="parceiroForm.get('personalityType')?.value === 'J'">CNPJ é obrigatório.</span>
+                  <span *ngIf="!parceiroForm.get('personalityType')?.value">Documento é obrigatório.</span>
                 </div>
                 <div class="error-message" *ngIf="documentoInvalido">
-                  <span *ngIf="parceiroForm.get('personalidade')?.value === 'F'">CPF inválido.</span>
-                  <span *ngIf="parceiroForm.get('personalidade')?.value === 'J'">CNPJ inválido.</span>
+                  <span *ngIf="parceiroForm.get('personalityType')?.value === 'F'">CPF inválido.</span>
+                  <span *ngIf="parceiroForm.get('personalityType')?.value === 'J'">CNPJ inválido.</span>
                 </div>
               </div>
             </div>
@@ -67,11 +67,11 @@
             <!-- Razão Social -->
             <div class="row mb-3">
               <div class="col-md-12">
-                <label for="razaoSocial" class="form-label">Razão Social *</label>
-                <input type="text" class="form-control" id="razaoSocial" 
-                       formControlName="razaoSocial"
-                       [ngClass]="{'input-error': parceiroForm.get('razaoSocial')?.invalid && parceiroForm.get('razaoSocial')?.touched}">
-                <div class="error-message" *ngIf="parceiroForm.get('razaoSocial')?.invalid && parceiroForm.get('razaoSocial')?.touched">
+                <label for="companyName" class="form-label">Razão Social *</label>
+                <input type="text" class="form-control" id="companyName" 
+                       formControlName="companyName"
+                       [ngClass]="{'input-error': parceiroForm.get('companyName')?.invalid && parceiroForm.get('companyName')?.touched}">
+                <div class="error-message" *ngIf="parceiroForm.get('companyName')?.invalid && parceiroForm.get('companyName')?.touched">
                   Razão Social é obrigatória.
                 </div>
               </div>
@@ -80,13 +80,13 @@
             <!-- CEP e Telefone -->
             <div class="row mb-3">
               <div class="col-md-6">
-                <label for="cep" class="form-label">CEP *</label>
-                <input type="text" class="form-control" id="cep" 
-                       formControlName="cep"
+                <label for="zipCode" class="form-label">CEP *</label>
+                <input type="text" class="form-control" id="zipCode" 
+                       formControlName="zipCode"
                        (blur)="consultarCep()"
-                       [ngClass]="{'input-error': (parceiroForm.get('cep')?.invalid && parceiroForm.get('cep')?.touched) || cepInvalido}"
+                       [ngClass]="{'input-error': (parceiroForm.get('zipCode')?.invalid && parceiroForm.get('zipCode')?.touched) || cepInvalido}"
                        appMask="cep">
-                <div class="error-message" *ngIf="parceiroForm.get('cep')?.invalid && parceiroForm.get('cep')?.touched">
+                <div class="error-message" *ngIf="parceiroForm.get('zipCode')?.invalid && parceiroForm.get('zipCode')?.touched">
                   CEP é obrigatório.
                 </div>
                 <div class="error-message" *ngIf="cepInvalido">
@@ -94,12 +94,12 @@
                 </div>
               </div>
               <div class="col-md-6">
-                <label for="telefone" class="form-label">Telefone *</label>
-                <input type="text" class="form-control" id="telefone" 
-                       formControlName="telefone"
-                       [ngClass]="{'input-error': parceiroForm.get('telefone')?.invalid && parceiroForm.get('telefone')?.touched}"
+                <label for="phone" class="form-label">Telefone *</label>
+                <input type="text" class="form-control" id="phone" 
+                       formControlName="phone"
+                       [ngClass]="{'input-error': parceiroForm.get('phone')?.invalid && parceiroForm.get('phone')?.touched}"
                        appMask="telefone">
-                <div class="error-message" *ngIf="parceiroForm.get('telefone')?.invalid && parceiroForm.get('telefone')?.touched">
+                <div class="error-message" *ngIf="parceiroForm.get('phone')?.invalid && parceiroForm.get('phone')?.touched">
                   Telefone é obrigatório.
                 </div>
               </div>
@@ -108,20 +108,20 @@
             <!-- Endereço -->
             <div class="row mb-3">
               <div class="col-md-8">
-                <label for="logradouro" class="form-label">Logradouro *</label>
-                <input type="text" class="form-control" id="logradouro" 
-                       formControlName="logradouro"
-                       [ngClass]="{'input-error': parceiroForm.get('logradouro')?.invalid && parceiroForm.get('logradouro')?.touched}">
-                <div class="error-message" *ngIf="parceiroForm.get('logradouro')?.invalid && parceiroForm.get('logradouro')?.touched">
+                <label for="street" class="form-label">Logradouro *</label>
+                <input type="text" class="form-control" id="street" 
+                       formControlName="street"
+                       [ngClass]="{'input-error': parceiroForm.get('street')?.invalid && parceiroForm.get('street')?.touched}">
+                <div class="error-message" *ngIf="parceiroForm.get('street')?.invalid && parceiroForm.get('street')?.touched">
                   Logradouro é obrigatório.
                 </div>
               </div>
               <div class="col-md-4">
-                <label for="numero" class="form-label">Número *</label>
-                <input type="text" class="form-control" id="numero" 
-                       formControlName="numero"
-                       [ngClass]="{'input-error': parceiroForm.get('numero')?.invalid && parceiroForm.get('numero')?.touched}">
-                <div class="error-message" *ngIf="parceiroForm.get('numero')?.invalid && parceiroForm.get('numero')?.touched">
+                <label for="number" class="form-label">Número *</label>
+                <input type="text" class="form-control" id="number" 
+                       formControlName="number"
+                       [ngClass]="{'input-error': parceiroForm.get('number')?.invalid && parceiroForm.get('number')?.touched}">
+                <div class="error-message" *ngIf="parceiroForm.get('number')?.invalid && parceiroForm.get('number')?.touched">
                   Número é obrigatório.
                 </div>
               </div>
@@ -129,37 +129,37 @@
 
             <div class="row mb-3">
               <div class="col-md-6">
-                <label for="bairro" class="form-label">Bairro *</label>
-                <input type="text" class="form-control" id="bairro" 
-                       formControlName="bairro"
-                       [ngClass]="{'input-error': parceiroForm.get('bairro')?.invalid && parceiroForm.get('bairro')?.touched}">
-                <div class="error-message" *ngIf="parceiroForm.get('bairro')?.invalid && parceiroForm.get('bairro')?.touched">
+                <label for="neighborhood" class="form-label">Bairro *</label>
+                <input type="text" class="form-control" id="neighborhood" 
+                       formControlName="neighborhood"
+                       [ngClass]="{'input-error': parceiroForm.get('neighborhood')?.invalid && parceiroForm.get('neighborhood')?.touched}">
+                <div class="error-message" *ngIf="parceiroForm.get('neighborhood')?.invalid && parceiroForm.get('neighborhood')?.touched">
                   Bairro é obrigatório.
                 </div>
               </div>
               <div class="col-md-6">
-                <label for="complemento" class="form-label">Complemento</label>
-                <input type="text" class="form-control" id="complemento" 
-                       formControlName="complemento">
+                <label for="complement" class="form-label">Complemento</label>
+                <input type="text" class="form-control" id="complement" 
+                       formControlName="complement">
               </div>
             </div>
 
             <div class="row mb-3">
               <div class="col-md-6">
-                <label for="municipio" class="form-label">Município *</label>
-                <input type="text" class="form-control" id="municipio" 
-                       formControlName="municipio"
-                       [ngClass]="{'input-error': parceiroForm.get('municipio')?.invalid && parceiroForm.get('municipio')?.touched}">
-                <div class="error-message" *ngIf="parceiroForm.get('municipio')?.invalid && parceiroForm.get('municipio')?.touched">
+                <label for="city" class="form-label">Município *</label>
+                <input type="text" class="form-control" id="city" 
+                       formControlName="city"
+                       [ngClass]="{'input-error': parceiroForm.get('city')?.invalid && parceiroForm.get('city')?.touched}">
+                <div class="error-message" *ngIf="parceiroForm.get('city')?.invalid && parceiroForm.get('city')?.touched">
                   Município é obrigatório.
                 </div>
               </div>
               <div class="col-md-6">
-                <label for="uf" class="form-label">UF *</label>
-                <input type="text" class="form-control" id="uf" 
-                       formControlName="uf"
-                       [ngClass]="{'input-error': parceiroForm.get('uf')?.invalid && parceiroForm.get('uf')?.touched}">
-                <div class="error-message" *ngIf="parceiroForm.get('uf')?.invalid && parceiroForm.get('uf')?.touched">
+                <label for="state" class="form-label">UF *</label>
+                <input type="text" class="form-control" id="state" 
+                       formControlName="state"
+                       [ngClass]="{'input-error': parceiroForm.get('state')?.invalid && parceiroForm.get('state')?.touched}">
+                <div class="error-message" *ngIf="parceiroForm.get('state')?.invalid && parceiroForm.get('state')?.touched">
                   UF é obrigatória.
                 </div>
               </div>
@@ -178,9 +178,9 @@
                 </div>
               </div>
               <div class="col-md-6">
-                <label for="observacao" class="form-label">Observação</label>
-                <textarea class="form-control" id="observacao" 
-                          formControlName="observacao" rows="3"></textarea>
+                <label for="observation" class="form-label">Observação</label>
+                <textarea class="form-control" id="observation" 
+                          formControlName="observation" rows="3"></textarea>
               </div>
             </div>
 

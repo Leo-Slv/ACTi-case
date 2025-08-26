@@ -1,15 +1,22 @@
 export interface Parceiro {
-  personalidade: string; // 'F' para Física, 'J' para Jurídica
-  razaoSocial: string;
-  cnpjCpf: string;
-  cep: string;
-  uf: string;
-  municipio: string;
-  logradouro: string;
-  numero: string;
-  bairro: string;
-  email: string;
-  telefone: string;
-  complemento?: string; // Opcional
-  observacao?: string;  // Opcional
+  personalityType: string;     // 'F' ou 'J'
+  companyName: string;         // Razão Social
+  document: string;            // CNPJ/CPF
+  zipCode: string;             // CEP
+  state: string;               // UF
+  city: string;                // Município
+  street: string;              // Logradouro
+  number: string;              // Número
+  neighborhood: string;        // Bairro
+  email: string;               // Email
+  phone: string;               // Telefone
+  complement?: string;         // Complemento (opcional)
+  observation?: string;        // Observação (opcional)
+}
+
+export interface ApiResponse {
+  success: boolean;
+  message: string;
+  code?: string;
+  details?: any;
 }
